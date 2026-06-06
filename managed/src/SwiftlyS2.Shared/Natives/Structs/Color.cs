@@ -54,6 +54,40 @@ public struct Color : IEquatable<Color>
             : new Color(r.Value, g.Value, b.Value, a ?? 255);
     }
 
+    public static Color FromHue( float hue )
+    {
+        return FromHSV(hue, 1f, 1f);
+    }
+
+    public static Color FromHSV( float hue, float saturation, float value )
+    {
+        if (saturation == 0f)
+        {
+            var grey = (byte)(value * 255f);
+            return new Color(grey, grey, grey);
+        }
+
+        hue %= 360f;
+        var sector = hue / 60f;
+        var i = (int)sector;
+        var f = sector - i;
+
+        var p = value * (1f - saturation);
+        var q = value * (1f - (saturation * f));
+        var t = value * (1f - (saturation * (1f - f)));
+
+        var (r, g, b) = i switch {
+            0 => (value, t, p),
+            1 => (q, value, p),
+            2 => (p, value, t),
+            3 => (p, q, value),
+            4 => (t, p, value),
+            _ => (value, p, q),
+        };
+
+        return new Color((byte)(r * 255f), (byte)(g * 255f), (byte)(b * 255f));
+    }
+
     public readonly System.Drawing.Color ToBuiltin()
     {
         return System.Drawing.Color.FromArgb(A, R, G, B);
